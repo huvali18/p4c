@@ -73,7 +73,7 @@ set(
   TESTGEN_LIBS
   PRIVATE p4tools-common
   PRIVATE p4tools-control-plane
-  PUBLIC inja
+  PRIVATE inja
 )
 set(TESTGEN_INCLUDES)
 
@@ -106,7 +106,10 @@ configure_file(register.h.in register.h)
 # The library.
 add_p4tools_library(testgen ${TESTGEN_SOURCES})
 # Make sure the testgen library and anything that links to it see both the Z3 and Inja includes.
-target_link_libraries(testgen PUBLIC p4tools-common inja)
+target_link_libraries(testgen
+  PRIVATE p4tools-common
+  PRIVATE inja
+)
 if (TESTGEN_INCLUDES)
   target_include_directories(testgen ${TESTGEN_INCLUDES})
 endif()
@@ -115,10 +118,10 @@ endif()
 add_p4tools_executable(p4testgen main.cpp)
 target_link_libraries(
   p4testgen
-  PRIVATE testgen
   ${TESTGEN_LIBS}
   ${P4C_LIBRARIES}
   ${P4C_LIB_DEPS}
+  PRIVATE testgen
   ${CMAKE_THREAD_LIBS_INIT}
 )
 
