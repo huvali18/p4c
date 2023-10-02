@@ -1,13 +1,26 @@
 #include "backends/p4tools/modules/smith/common/declarations.h"
 
-#include "backends/p4tools/modules/smith/common/baseType.h"
-#include "backends/p4tools/modules/smith/common/expression.h"
+#include "backends/p4tools/modules/smith/common/expressions.h"
 #include "backends/p4tools/modules/smith/common/scope.h"
 #include "backends/p4tools/modules/smith/common/statements.h"
 #include "backends/p4tools/modules/smith/common/table.h"
-#include "backends/p4tools/modules/smith/common/typeRef.h"
 
 namespace P4Tools::P4Smith {
+
+IR::Annotations *Declarations::genAnnotation() {
+    Util::SourceInfo si;
+    IR::Vector<IR::Annotation> annotations;
+    IR::Vector<IR::Expression> exprs;
+    cstring name = IR::Annotation::nameAnnotation;
+    auto str_literal = new IR::StringLiteral(randStr(6));
+
+    exprs.push_back(str_literal);
+
+    auto annotation = new IR::Annotation(si, name, exprs, false);
+    annotations.push_back(annotation);
+
+    return new IR::Annotations(annotations);
+}
 
 IR::Declaration_Constant *Declarations::genConstantDeclaration() {
     cstring name = randStr(6);
@@ -22,7 +35,7 @@ IR::Declaration_Constant *Declarations::genConstantDeclaration() {
         PCT.CONSTANTDECLARATION_TYPE_MATCH_KIND,
     };
 
-    IR::Type *tp = TypeRef::pick_rnd_type(type_percent);
+    IR::Type *tp = Expressions().pickRndType(type_percent);
 
     IR::Declaration_Constant *ret = nullptr;
     // constant declarations need to be compile-time known
@@ -30,7 +43,7 @@ IR::Declaration_Constant *Declarations::genConstantDeclaration() {
 
     if (tp->is<IR::Type_Bits>() || tp->is<IR::Type_InfInt>() || tp->is<IR::Type_Boolean>() ||
         tp->is<IR::Type_Name>()) {
-        auto expr = expression::gen_expr(tp);
+        auto expr = Expressions().genExpression(tp);
         ret = new IR::Declaration_Constant(name, tp, expr);
     } else {
         BUG("Type %s !supported!", tp->node_type_name());
@@ -165,7 +178,7 @@ IR::IndexedVector<IR::SerEnumMember> Declarations::genSpecifiedIdentifier(size_t
 
     for (size_t i = 0; i < len; i++) {
         cstring name = randStr(2);
-        IR::Expression *ex = BaseType::gen_int_literal();
+        IR::Expression *ex = Expressions().genIntLiteral();
 
         if (members_name.find(name) != members_name.end()) {
             delete ex;
@@ -185,7 +198,7 @@ IR::IndexedVector<IR::SerEnumMember> Declarations::genSpecifiedIdentifierList(si
 
     for (size_t i = 0; i < len; i++) {
         cstring name = randStr(2);
-        IR::Expression *ex = BaseType::gen_int_literal();
+        IR::Expression *ex = Expressions().genIntLiteral();
 
         if (members_name.find(name) != members_name.end()) {
             delete ex;
@@ -211,7 +224,7 @@ IR::Type_Enum *Declarations::genEnumDeclaration(cstring name) {
 
 IR::Type_SerEnum *Declarations::genSerEnumDeclaration(cstring name) {
     auto members = genSpecifiedIdentifierList(3);
-    IR::Type_Bits *tp = BaseType::gen_bit_type(false);
+    IR::Type_Bits *tp = Expressions::genBitType(false);
 
     auto ret = new IR::Type_SerEnum(name, tp, members);
 
@@ -245,7 +258,7 @@ IR::Method *Declarations::genExternDeclaration() {
         PCT.FUNCTIONDECLARATION_DERIVED_TUPLE,   PCT.FUNCTIONDECLARATION_TYPE_VOID,
         PCT.FUNCTIONDECLARATION_TYPE_MATCH_KIND,
     };
-    IR::Type *return_type = TypeRef::pick_rnd_type(type_percent);
+    IR::Type *return_type = Expressions().pickRndType(type_percent);
     tm = new IR::Type_Method(return_type, params, name);
     auto ret = new IR::Method(name, tm);
     P4Scope::end_local_scope();
@@ -270,7 +283,7 @@ IR::Function *Declarations::genFunctionDeclaration() {
         PCT.FUNCTIONDECLARATION_DERIVED_TUPLE,   PCT.FUNCTIONDECLARATION_TYPE_VOID,
         PCT.FUNCTIONDECLARATION_TYPE_MATCH_KIND,
     };
-    IR::Type *return_type = TypeRef::pick_rnd_type(type_percent);
+    IR::Type *return_type = Expressions().pickRndType(type_percent);
     tm = new IR::Type_Method(return_type, params, name);
 
     P4Scope::prop.ret_type = return_type;
@@ -316,7 +329,7 @@ IR::Type_Header *Declarations::genHeaderTypeDeclaration() {
     size_t len = getRndInt(1, 5);
     for (size_t i = 0; i < len; i++) {
         cstring field_name = randStr(4);
-        IR::Type *field_tp = TypeRef::pick_rnd_type(type_percent);
+        IR::Type *field_tp = Expressions().pickRndType(type_percent);
 
         if (auto struct_tp = field_tp->to<IR::Type_Struct>()) {
             field_tp = new IR::Type_Name(struct_tp->name);
@@ -415,7 +428,7 @@ IR::Type_Struct *Declarations::genStructTypeDeclaration() {
     size_t len = getRndInt(1, 5);
 
     for (size_t i = 0; i < len; i++) {
-        IR::Type *field_tp = TypeRef::pick_rnd_type(type_percent);
+        IR::Type *field_tp = Expressions().pickRndType(type_percent);
         cstring field_name = randStr(4);
         if (field_tp->to<IR::Type_Stack>()) {
             // Right now there is now way to initialize a header stack
@@ -448,7 +461,7 @@ IR::Type_Struct *Declarations::genHeaderStruct() {
     for (size_t i = 0; i < len; i++) {
         cstring field_name = randStr(4);
         IR::Type *tp = nullptr;
-        switch (randInd(percent)) {
+        switch (randInt(percent)) {
             case 0: {
                 // TODO: We have to assume that this works
                 auto l_types = P4Scope::get_decls<IR::Type_Header>();
@@ -480,7 +493,7 @@ IR::Type_Declaration *Declarations::genTypeDeclaration() {
                                     PCT.TYPEDECLARATION_UNION};
     IR::Type_Declaration *decl = nullptr;
     bool use_default_decl = false;
-    switch (randInd(percent)) {
+    switch (randInt(percent)) {
         case 0: {
             use_default_decl = true;
             break;
@@ -519,10 +532,10 @@ IR::Type *Declarations::genType() {
         PCT.TYPEDEFDECLARATION_BASETYPE_BIT,   PCT.TYPEDEFDECLARATION_BASETYPE_SIGNED_BIT,
         PCT.TYPEDEFDECLARATION_BASETYPE_VARBIT};
     IR::Type *tp = nullptr;
-    switch (randInd(percent)) {
+    switch (randInt(percent)) {
         case 0: {
             std::vector<int> b_types = {1};  // only bit<>
-            tp = BaseType::pick_rnd_base_type(type_probs);
+            tp = Expressions().pickRndBaseType(type_probs);
             break;
         }
         case 1: {
@@ -578,13 +591,13 @@ IR::Declaration_Variable *Declarations::genVariableDeclaration() {
         PCT.VARIABLEDECLARATION_TYPE_MATCH_KIND,
     };
 
-    IR::Type *tp = TypeRef::pick_rnd_type(type_percent);
+    IR::Type *tp = Expressions().pickRndType(type_percent);
 
     IR::Declaration_Variable *ret = nullptr;
 
     if (tp->is<IR::Type_Bits>() || tp->is<IR::Type_InfInt>() || tp->is<IR::Type_Boolean>() ||
         tp->is<IR::Type_Name>()) {
-        auto expr = expression::gen_expr(tp);
+        auto expr = Expressions().genExpression(tp);
         ret = new IR::Declaration_Variable(name, tp, expr);
     } else if (tp->is<IR::Type_Stack>()) {
         // header stacks do !have an initializer yet
@@ -629,7 +642,7 @@ IR::Parameter *Declarations::genTypedParameter(bool if_none_dir) {
         };
         std::vector<int64_t> dir_percent = {PCT.PARAMETER_DIR_IN, PCT.PARAMETER_DIR_OUT,
                                             PCT.PARAMETER_DIR_INOUT};
-        switch (randInd(dir_percent)) {
+        switch (randInt(dir_percent)) {
             case 0:
                 dir = IR::Direction::In;
                 break;
@@ -643,7 +656,7 @@ IR::Parameter *Declarations::genTypedParameter(bool if_none_dir) {
                 dir = IR::Direction::None;
         }
     }
-    tp = TypeRef::pick_rnd_type(type_percent);
+    tp = Expressions().pickRndType(type_percent);
 
     return new IR::Parameter(name, dir, tp);
 }
@@ -685,4 +698,5 @@ IR::ParameterList *Declarations::genParameterList() {
 
     return new IR::ParameterList(params);
 }
+
 }  // namespace P4Tools::P4Smith

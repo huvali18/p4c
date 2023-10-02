@@ -8,42 +8,29 @@ project(smith)
 set(P4SMITH_DIR ${P4C_BINARY_DIR}/smith)
 set(P4SMITH_DRIVER "${CMAKE_CURRENT_BINARY_DIR}/p4smith")
 
-find_package(Boost REQUIRED COMPONENTS system)
-
 configure_file(
   "${CMAKE_CURRENT_SOURCE_DIR}/version.h.cmake" "${CMAKE_CURRENT_BINARY_DIR}/version.h" @ONLY
 )
 # Source files for smith.
 set(SMITH_SOURCES
     core/target.cpp
-    options.cpp
-    smith.cpp
     backends/psa.cpp
     backends/structFieldList.cpp
     backends/top.cpp
     backends/tna.cpp
     backends/v1model.cpp
-    common/annotations.cpp
-    common/argument.cpp
-    common/baseType.cpp
     common/declarations.cpp
-    common/expression.cpp
-    common/expression_boolean.cpp
-    common/expression_bit.cpp
-    common/expression_int.cpp
-    common/expression_struct.cpp
-    common/expressionList.cpp
-    common/member.cpp
+    common/expressions.cpp
     common/p4state.cpp
     common/probabilities.cpp
     common/scope.cpp
     common/statements.cpp
     common/statementOrDeclaration.cpp
     common/table.cpp
-    common/typeRef.cpp
     util/util.cpp
     util/wordlist.cpp
-
+    options.cpp
+    smith.cpp
 )
 
 set(SMITH_LIBS p4tools-common)

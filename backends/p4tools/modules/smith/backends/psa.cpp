@@ -59,9 +59,9 @@ IR::P4Parser *PSA::gen_switch_ingress_parser() {
 
     // generate states
     IR::IndexedVector<IR::ParserState> states;
-    auto start_state = p4State::gen_start_state();
+    auto start_state = P4State::gen_start_state();
     states.push_back(start_state);
-    states.push_back(p4State::gen_hdr_states());
+    states.push_back(P4State::gen_hdr_states());
 
     P4Scope::end_local_scope();
 
@@ -348,7 +348,7 @@ IR::P4Program *PSA::gen() {
     int callable_decls = getRndInt(DECL.MIN_CALLABLES, DECL.MAX_CALLABLES);
     for (int i = 0; i < callable_decls; ++i) {
         std::vector<int64_t> percent = {80, 15, 0, 5};
-        switch (randInd(percent)) {
+        switch (randInt(percent)) {
             case 0: {
                 objects->push_back(Declarations().genFunctionDeclaration());
                 break;

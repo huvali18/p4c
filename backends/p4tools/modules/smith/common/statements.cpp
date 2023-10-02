@@ -1,7 +1,6 @@
 #include "backends/p4tools/modules/smith/common/statements.h"
 
-#include "backends/p4tools/modules/smith/common/argument.h"
-#include "backends/p4tools/modules/smith/common/expression.h"
+#include "backends/p4tools/modules/smith/common/expressions.h"
 #include "backends/p4tools/modules/smith/common/probabilities.h"
 #include "backends/p4tools/modules/smith/common/scope.h"
 #include "backends/p4tools/modules/smith/common/statementOrDeclaration.h"
@@ -24,7 +23,7 @@ IR::Statement *Statements::genStatement(bool is_in_func) {
     IR::Statement *stmt = nullptr;
     bool use_default_stmt = false;
 
-    switch (randInd(percent)) {
+    switch (randInt(percent)) {
         case 0: {
             stmt = genSwitchStatement();
             if (!stmt) {
@@ -93,7 +92,7 @@ IR::IfStatement *Statements::genConditionalStatement(bool is_in_func) {
     IR::Expression *cond = nullptr;
     IR::Statement *if_true = nullptr, *if_false = nullptr;
 
-    cond = expression::gen_expr(new IR::Type_Boolean());
+    cond = Expressions().genExpression(new IR::Type_Boolean());
     if (!cond) {
         BUG("cond in IfStatement should !be nullptr!");
     }
@@ -135,7 +134,7 @@ IR::Statement *Statements::genAssignmentStatement() {
     std::vector<int64_t> percent = {PCT.ASSIGNMENTORMETHODCALLSTATEMENT_ASSIGN_BIT,
                                     PCT.ASSIGNMENTORMETHODCALLSTATEMENT_ASSIGN_STRUCTLIKE};
 
-    switch (randInd(percent)) {
+    switch (randInt(percent)) {
         case 0: {
             IR::Type_Bits *bitType = P4Scope::pick_declared_bit_type(true);
             // Ideally this should have a fallback option
@@ -148,7 +147,7 @@ IR::Statement *Statements::genAssignmentStatement() {
             if (P4Scope::constraints.single_stage_actions) {
                 removeLval(left, bitType);
             }
-            right = expression::gen_expr(bitType);
+            right = Expressions().genExpression(bitType);
             return new IR::AssignmentStatement(left, right);
         }
         case 1:
@@ -170,15 +169,15 @@ IR::Statement *Statements::genMethodCallExpression(IR::PathExpression *methodNam
     for (const auto *par : params) {
         IR::Argument *arg;
         // TODO: Fix the direction none issue here.
-        if (!argument::check_input_arg(par) && par->direction != IR::Direction::None) {
+        if (!Expressions().checkInputArg(par) && par->direction != IR::Direction::None) {
             auto name = cstring(randStr(6));
-            auto expr = expression::gen_expr(par->type);
+            auto expr = Expressions().genExpression(par->type);
             // all this boilerplate should be somewhere else...
             auto decl = new IR::Declaration_Variable(name, par->type, expr);
             P4Scope::add_to_scope(decl);
             decls.push_back(decl);
         }
-        arg = new IR::Argument(argument::gen_input_arg(par));
+        arg = new IR::Argument(Expressions().genInputArg(par));
         args->push_back(arg);
     }
     auto *mce = new IR::MethodCallExpression(methodName, args);
@@ -213,7 +212,7 @@ IR::Statement *Statements::genMethodCallStatement(bool is_in_func) {
                                     PCT.ASSIGNMENTORMETHODCALLSTATEMENT_METHOD_CTRL,
                                     PCT.ASSIGNMENTORMETHODCALLSTATEMENT_METHOD_BUILT_IN};
 
-    switch (randInd(percent)) {
+    switch (randInt(percent)) {
         case 0: {
             auto actions = P4Scope::get_decls<IR::P4Action>();
             if (actions.empty()) {
@@ -319,7 +318,7 @@ IR::Statement *Statements::genMethodCallStatement(bool is_in_func) {
 IR::Statement *Statements::genAssignmentOrMethodCallStatement(bool is_in_func) {
     std::vector<int64_t> percent = {PCT.ASSIGNMENTORMETHODCALLSTATEMENT_ASSIGN,
                                     PCT.ASSIGNMENTORMETHODCALLSTATEMENT_METHOD_CALL};
-    auto val = randInd(percent);
+    auto val = randInt(percent);
     if (val == 0) {
         return genAssignmentStatement();
     }
@@ -369,7 +368,7 @@ IR::ReturnStatement *Statements::genReturnStatement(const IR::Type *tp) {
 
     // Type_Void is also empty
     if (tp && !tp->to<IR::Type_Void>()) {
-        expr = expression::gen_expr(tp);
+        expr = Expressions().genExpression(tp);
     }
     return new IR::ReturnStatement(expr);
 }

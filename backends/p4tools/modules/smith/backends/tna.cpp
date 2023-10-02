@@ -64,21 +64,21 @@ IR::P4Parser *TNA::gen_switch_ingress_parser() {
 
     // Generate Parser states.
     IR::IndexedVector<IR::ParserState> states;
-    auto start_state = p4State::gen_start_state();
+    auto start_state = P4State::gen_start_state();
 
     // Insert custom parsing statements into the start state.
     auto pkt_path = new IR::PathExpression("pkt");
     auto pkt_extract = new IR::Member(pkt_path, "extract");
     auto pkt_advance = new IR::Member(pkt_path, "advance");
     auto ig_intr_md = new IR::PathExpression("ig_intr_md");
-    auto extract_tofino_md = p4State::gen_hdr_extract(pkt_extract, ig_intr_md);
+    auto extract_tofino_md = P4State::gen_hdr_extract(pkt_extract, ig_intr_md);
     start_state->components.push_back(extract_tofino_md);
     auto port_md_size = new IR::PathExpression("PORT_METADATA_SIZE");
-    auto advance_tofino_md = p4State::gen_hdr_extract(pkt_advance, port_md_size);
+    auto advance_tofino_md = P4State::gen_hdr_extract(pkt_advance, port_md_size);
     start_state->components.push_back(advance_tofino_md);
     // Done with custom statements.
     states.push_back(start_state);
-    states.push_back(p4State::gen_hdr_states());
+    states.push_back(P4State::gen_hdr_states());
 
     P4Scope::end_local_scope();
 
@@ -192,7 +192,7 @@ IR::P4Parser *TNA::gen_switch_egress_parser() {
     auto pkt_path = new IR::PathExpression("pkt");
     auto pkt_extract = new IR::Member(pkt_path, "extract");
     auto eg_intr_md = new IR::PathExpression("eg_intr_md");
-    auto extract_tofino_md = p4State::gen_hdr_extract(pkt_extract, eg_intr_md);
+    auto extract_tofino_md = P4State::gen_hdr_extract(pkt_extract, eg_intr_md);
     start_state->components.push_back(extract_tofino_md);
     states.push_back(start_state);
     return new IR::P4Parser("SwitchEgressParser", type_parser, local_decls, states);
@@ -374,7 +374,7 @@ IR::P4Program *TNA::gen() {
     int callable_decls = getRndInt(DECL.MIN_CALLABLES, DECL.MAX_CALLABLES);
     for (int i = 0; i < callable_decls; ++i) {
         std::vector<int64_t> percent = {80, 15, 0, 5};
-        switch (randInd(percent)) {
+        switch (randInt(percent)) {
             case 0: {
                 objects->push_back(Declarations().genFunctionDeclaration());
                 break;

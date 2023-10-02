@@ -4,18 +4,16 @@
 #include <map>
 #include <vector>
 
-#include "backends/p4tools/modules/smith/common/baseType.h"
 #include "backends/p4tools/modules/smith/common/declarations.h"
-#include "backends/p4tools/modules/smith/common/expressionList.h"
 #include "backends/p4tools/modules/smith/common/statements.h"
 
 namespace P4Tools {
 
 namespace P4Smith {
 
-IR::IndexedVector<IR::ParserState> p4State::state_list;
+IR::IndexedVector<IR::ParserState> P4State::state_list;
 
-IR::MethodCallStatement *p4State::gen_hdr_extract(IR::Member *pkt_call, IR::Expression *mem) {
+IR::MethodCallStatement *P4State::gen_hdr_extract(IR::Member *pkt_call, IR::Expression *mem) {
     IR::Vector<IR::Argument> *args = new IR::Vector<IR::Argument>();
     IR::Argument *arg = new IR::Argument(mem);
 
@@ -24,7 +22,7 @@ IR::MethodCallStatement *p4State::gen_hdr_extract(IR::Member *pkt_call, IR::Expr
     return new IR::MethodCallStatement(mce);
 }
 
-void p4State::gen_hdr_union_extract(IR::IndexedVector<IR::StatOrDecl> &components,
+void P4State::gen_hdr_union_extract(IR::IndexedVector<IR::StatOrDecl> &components,
                                     const IR::Type_HeaderUnion *hdru, IR::ArrayIndex *arr_ind,
                                     IR::Member *pkt_call) {
     auto sf = hdru->fields.at(0);
@@ -37,7 +35,7 @@ void p4State::gen_hdr_union_extract(IR::IndexedVector<IR::StatOrDecl> &component
     // }
 }
 
-IR::ParserState *p4State::gen_start_state() {
+IR::ParserState *P4State::gen_start_state() {
     IR::IndexedVector<IR::StatOrDecl> components;
     IR::Expression *transition = new IR::PathExpression("parse_hdrs");
     auto ret = new IR::ParserState("start", components, transition);
@@ -46,7 +44,7 @@ IR::ParserState *p4State::gen_start_state() {
     return ret;
 }
 
-IR::ParserState *p4State::gen_hdr_states() {
+IR::ParserState *P4State::gen_hdr_states() {
     IR::Expression *transition;
     IR::IndexedVector<IR::StatOrDecl> components;
     std::vector<cstring> hdr_fields_names;
@@ -127,7 +125,7 @@ IR::ListExpression *build_match_expr(IR::Vector<IR::Type> types) {
                     cstring lval_name = P4Scope::pick_lval(tb);
                     expr = new IR::PathExpression(lval_name);
                 } else {
-                    expr = BaseType::gen_bit_literal(tb);
+                    expr = Expressions().genBitLiteral(tb);
                 }
                 break;
             }
@@ -145,8 +143,8 @@ IR::ListExpression *build_match_expr(IR::Vector<IR::Type> types) {
             }
             case 2: {
                 // Mask
-                auto left = BaseType::gen_bit_literal(tb);
-                auto right = BaseType::gen_bit_literal(tb);
+                auto left = Expressions().genBitLiteral(tb);
+                auto right = Expressions().genBitLiteral(tb);
                 expr = new IR::Mask(tb, left, right);
                 break;
             }
@@ -156,7 +154,7 @@ IR::ListExpression *build_match_expr(IR::Vector<IR::Type> types) {
     return new IR::ListExpression(components);
 }
 
-void p4State::gen_state(cstring name) {
+void P4State::gen_state(cstring name) {
     IR::IndexedVector<IR::StatOrDecl> components;
 
     P4Scope::start_local_scope();
@@ -182,7 +180,7 @@ void p4State::gen_state(cstring name) {
                                     PCT.P4STATE_TRANSITION_STATE, PCT.P4STATE_TRANSITION_SELECT};
 
     P4Scope::end_local_scope();
-    switch (randInd(percent)) {
+    switch (randInt(percent)) {
         case 0: {
             transition = new IR::PathExpression("accept");
             break;
@@ -205,7 +203,7 @@ void p4State::gen_state(cstring name) {
 
             IR::Vector<IR::Type> types;
             for (size_t i = 0; i <= key_set_len; i++) {
-                auto tb = BaseType::gen_bit_type(false);
+                auto tb = Expressions::genBitType(false);
                 types.push_back(tb);
             }
 
@@ -241,7 +239,7 @@ void p4State::gen_state(cstring name) {
                 }
             }
             P4Scope::req.require_scalar = true;
-            IR::ListExpression *key_set = expressionList::gen(types, false);
+            IR::ListExpression *key_set = Expressions().genExpressionList(types, false);
             P4Scope::req.require_scalar = false;
             transition = new IR::SelectExpression(key_set, cases);
             break;
@@ -254,9 +252,9 @@ void p4State::gen_state(cstring name) {
     state_list.push_back(ret);
 }
 
-void p4State::build_parser_tree() {
-    state_list.push_back(p4State::gen_start_state());
-    state_list.push_back(p4State::gen_hdr_states());
+void P4State::build_parser_tree() {
+    state_list.push_back(P4State::gen_start_state());
+    state_list.push_back(P4State::gen_hdr_states());
 }
 
 }  // namespace P4Smith

@@ -1,8 +1,7 @@
 #include "backends/p4tools/modules/smith/common/table.h"
 
-#include "backends/p4tools/modules/smith/common/annotations.h"
-#include "backends/p4tools/modules/smith/common/argument.h"
-#include "backends/p4tools/modules/smith/common/expression.h"
+#include "backends/p4tools/modules/smith/common/declarations.h"
+#include "backends/p4tools/modules/smith/common/expressions.h"
 #include "backends/p4tools/modules/smith/common/scope.h"
 #include "backends/p4tools/modules/smith/util/util.h"
 
@@ -55,7 +54,7 @@ IR::Key *Table::genKeyElementList(size_t len) {
 
 IR::KeyElement *Table::genKeyElement(cstring match_kind) {
     auto match = new IR::PathExpression(match_kind);
-    auto annotations = Annotations::gen();
+    auto annotations = Declarations().genAnnotation();
     auto bit_type = P4Scope::pick_declared_bit_type(false);
 
     // Ideally this should have a fallback option
@@ -65,7 +64,7 @@ IR::KeyElement *Table::genKeyElement(cstring match_kind) {
     }
     // this expression can!be an infinite precision integer
     P4Scope::req.require_scalar = true;
-    auto expr = expression::gen_expr(bit_type);
+    auto expr = Expressions().genExpression(bit_type);
     P4Scope::req.require_scalar = false;
     auto key = new IR::KeyElement(annotations, expr, match);
 
@@ -87,7 +86,7 @@ IR::MethodCallExpression *Table::genTableActionCall(cstring method_name, IR::Par
     bool can_call = true;
 
     for (auto par : params) {
-        if (!argument::check_input_arg(par)) {
+        if (Expressions().checkInputArg(par)) {
             can_call = false;
         } else if (par->direction == IR::Direction::None) {
             // do nothing; in tables directionless parameters are
@@ -98,7 +97,7 @@ IR::MethodCallExpression *Table::genTableActionCall(cstring method_name, IR::Par
             if (par->direction == IR::Direction::In) {
                 // the generated expression needs to be compile-time known
                 P4Scope::req.compile_time_known = true;
-                arg = new IR::Argument(expression::gen_expr(par->type));
+                arg = new IR::Argument(Expressions().genExpression(par->type));
                 P4Scope::req.compile_time_known = false;
             } else {
                 arg = new IR::Argument(P4Scope::pick_lval_or_slice(par->type));

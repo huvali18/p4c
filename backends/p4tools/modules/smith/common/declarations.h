@@ -7,6 +7,8 @@ namespace P4Tools::P4Smith {
 
 class Declarations {
  public:
+    virtual IR::Annotations *genAnnotation();
+
     virtual IR::P4Action *genActionDeclaration();
 
     virtual IR::Declaration_Constant *genConstantDeclaration();

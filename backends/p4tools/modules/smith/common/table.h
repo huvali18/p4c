@@ -4,6 +4,7 @@
 #include "ir/ir.h"
 
 namespace P4Tools::P4Smith {
+
 class Table {
  public:
     virtual IR::P4Table *genTableDeclaration();

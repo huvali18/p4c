@@ -29,7 +29,7 @@ std::string randStr(size_t len);
 void setSeed(int64_t seed);
 
 /// @returns a random integer based on the percent vector.
-int64_t randInd(const std::vector<int64_t> &percent);
+int64_t randInt(const std::vector<int64_t> &percent);
 
 /// @returns a random integer between min and max.
 int64_t getRndInt(int64_t min, int64_t max);

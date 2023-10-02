@@ -50,8 +50,8 @@ IR::P4Parser *Top::gen_p() {
     }
 
     // generate states
-    p4State::build_parser_tree();
-    IR::IndexedVector<IR::ParserState> states = p4State::get_states();
+    P4State::build_parser_tree();
+    IR::IndexedVector<IR::ParserState> states = P4State::get_states();
 
     P4Scope::end_local_scope();
 
@@ -148,7 +148,7 @@ IR::P4Program *Top::gen() {
     int callable_decls = getRndInt(DECL.MIN_CALLABLES, DECL.MAX_CALLABLES);
     for (int i = 0; i < callable_decls; ++i) {
         std::vector<int64_t> percent = {70, 15, 10, 5};
-        switch (randInd(percent)) {
+        switch (randInt(percent)) {
             case 0: {
                 objects->push_back(Declarations().genFunctionDeclaration());
                 break;

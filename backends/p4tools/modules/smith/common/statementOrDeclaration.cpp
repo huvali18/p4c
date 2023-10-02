@@ -14,7 +14,7 @@ IR::StatOrDecl *statementOrDeclaration::gen_rnd(bool is_in_func = false) {
     std::vector<int64_t> percent = {PCT.STATEMENTORDECLARATION_VAR,
                                     PCT.STATEMENTORDECLARATION_CONSTANT,
                                     PCT.STATEMENTORDECLARATION_STATEMENT};
-    auto val = randInd(percent);
+    auto val = randInt(percent);
     if (val == 0) {
         auto stmt = Declarations().genVariableDeclaration();
         if (!stmt) {

@@ -1,7 +1,7 @@
 #ifndef BACKENDS_P4TOOLS_MODULES_SMITH_COMMON_P4STATE_H_
 #define BACKENDS_P4TOOLS_MODULES_SMITH_COMMON_P4STATE_H_
 
-#include "backends/p4tools/modules/smith/common/expression.h"
+#include "backends/p4tools/modules/smith/common/expressions.h"
 #include "backends/p4tools/modules/smith/common/scope.h"
 #include "backends/p4tools/modules/smith/util/util.h"
 #include "ir/ir.h"
@@ -10,12 +10,12 @@ namespace P4Tools {
 
 namespace P4Smith {
 
-class p4State {
+class P4State {
  public:
-    p4State() {}
+    P4State() {}
     static IR::IndexedVector<IR::ParserState> state_list;
 
-    ~p4State() {}
+    ~P4State() {}
 
     static IR::MethodCallStatement *gen_hdr_extract(IR::Member *pkt_call, IR::Expression *mem);
     static void gen_hdr_union_extract(IR::IndexedVector<IR::StatOrDecl> &components,

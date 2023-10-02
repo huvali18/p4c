@@ -74,7 +74,7 @@ std::string randStr(size_t len) {
     return ret;
 }
 
-int64_t randInd(const std::vector<int64_t> &percent) {
+int64_t randInt(const std::vector<int64_t> &percent) {
     int sum = accumulate(percent.begin(), percent.end(), 0);
 
     // Do not pick zero since that conflicts with zero percentage values.

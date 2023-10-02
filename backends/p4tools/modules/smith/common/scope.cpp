@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "backends/p4tools/modules/smith/common/expression.h"
+#include "backends/p4tools/modules/smith/common/expressions.h"
 namespace P4Tools {
 
 namespace P4Smith {
@@ -323,7 +323,7 @@ IR::Expression *edit_hdr_stack(cstring lval) {
             int stack_sz = std::stoi(stack_str.before(stack_sz_end).c_str());
             expr = new IR::Member(expr, sub_str.before(hdr_brkt));
             auto tb = new IR::Type_Bits(3, false);
-            IR::Expression *idx = expression::gen_expr(tb);
+            IR::Expression *idx = Expressions().genExpression(tb);
             IR::Vector<IR::Argument> *args = new IR::Vector<IR::Argument>();
             args->push_back(new IR::Argument(idx));
             args->push_back(new IR::Argument(new IR::Constant(tb, stack_sz)));
@@ -343,7 +343,7 @@ IR::Expression *P4Scope::pick_lval_or_slice(const IR::Type *tp) {
 
     if (auto tb = tp->to<IR::Type_Bits>()) {
         std::vector<int64_t> percent = {PCT.SCOPE_LVAL_PATH, PCT.SCOPE_LVAL_SLICE};
-        switch (randInd(percent)) {
+        switch (randInt(percent)) {
             case 0: {
                 break;
             }
