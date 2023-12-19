@@ -155,13 +155,14 @@ class Node : public virtual INode {
     /* 'equiv' does a deep-equals comparison, comparing all non-pointer fields and recursing
      * though all Node subclass pointers to compare them with 'equiv' as well. */
     virtual bool equiv(const Node &a) const { return typeid(*this) == typeid(a); }
+    virtual bool operator<(const Node &a) const { return node_type_name() < a.node_type_name(); }
 #define DEFINE_OPEQ_FUNC(CLASS, BASE) \
     virtual bool operator==(const CLASS &) const { return false; }
     IRNODE_ALL_SUBCLASSES(DEFINE_OPEQ_FUNC)
 #undef DEFINE_OPEQ_FUNC
 
     bool operator!=(const Node &n) const { return !operator==(n); }
-};
+};  // namespace IR
 
 // simple version of dbprint
 cstring dbp(const INode *node);
