@@ -11,12 +11,11 @@ if [[ ! -x $BREW ]]; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-BOOST_LIB="boost@1.76"
-
 $BREW install autoconf automake bdw-gc ccache cmake \
-      libtool openssl pkg-config python coreutils
+      libtool openssl pkg-config coreutils
 
 # We need to link boost.
+BOOST_LIB="boost@1.76"
 $BREW install ${BOOST_LIB}
 $BREW link ${BOOST_LIB}
 # Prefer Homebrew's bison and grep over the macOS-provided version
