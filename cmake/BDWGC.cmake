@@ -8,21 +8,14 @@ macro(p4c_obtain_bdwgc)
   set(enable_large_config ON CACHE BOOL "Optimize for large heap or root set.")
   set(without_libatomic_ops OFF CACHE BOOL "Use atomic_ops.h in libatomic_ops/src")
 
-  # MacOS has problems with threads and malloc redirect. Disable it for now. We still use the C++
-  # new/delete etc garbage collection.
-  if(APPLE)
-    append("-Wno-deprecated-declarations" CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
-    add_definitions("-DNO_MARKER_SPECIAL_SIGMASK")
-    set(enable_redirect_malloc OFF CACHE BOOL "Redirect malloc and friends to GC routines.")
-  else()
-    # For any other distribution we redirect all malloc calls in the program.
-    set(enable_redirect_malloc ON CACHE BOOL "Redirect malloc and friends to GC routines.")
-    add_definitions("-DREDIRECT_REALLOC=GC_REALLOC")
-    # Try to enable thread-local-storage for better performance.
-    set(enable_thread_local_alloc ON CACHE BOOL "Turn on thread-local allocation optimization")
-    add_definitions("-DUSE_COMPILER_TLS")
-    add_definitions("-DNO_PROC_FOR_LIBRARIES")
-  endif()
+  # Redirect all malloc calls in the program.
+  set(enable_redirect_malloc ON CACHE BOOL "Redirect malloc and friends to GC routines.")
+  add_definitions("-DREDIRECT_REALLOC=GC_REALLOC")
+  # Try to enable thread-local-storage for better performance.
+  set(enable_thread_local_alloc ON CACHE BOOL "Turn on thread-local allocation optimization")
+  add_definitions("-DUSE_COMPILER_TLS")
+  add_definitions("-DNO_PROC_FOR_LIBRARIES")
+
   fetchcontent_declare(
     bdwgc
     GIT_REPOSITORY https://github.com/ivmai/bdwgc.git
